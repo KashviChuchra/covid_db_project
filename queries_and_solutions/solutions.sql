@@ -627,3 +627,69 @@ INNER JOIN covid.state s
     ON v.state_id = s.state_id
 GROUP BY s.name
 ORDER BY both_dose_percentage DESC;
+
+-- =========================================================
+-- INDIAN STATE-WISE ANALYSIS
+-- =========================================================
+
+-- 1. Total State-wise Confirmed Cases.
+
+SELECT
+    s.name AS state,
+    SUM(cs.confirmed) AS total_confirmed
+FROM covid.state s
+INNER JOIN covid.covid_case_stats cs
+    ON s.state_id = cs.state_id
+GROUP BY s.name
+ORDER BY total_confirmed DESC;
+
+
+-- 2. Maximum Active Cases State-wise till date.
+
+SELECT
+    s.name AS state,
+    MAX(cs.active_cases) AS maximum_active_cases
+FROM covid.state s
+INNER JOIN covid.covid_case_stats cs
+    ON s.state_id = cs.state_id
+GROUP BY s.name
+ORDER BY maximum_active_cases DESC;
+
+
+-- 3. Max Per Day Confirmed Cases in States.
+
+SELECT
+    s.name AS state,
+    MAX(cs.new_confirmed) AS max_per_day_confirmed
+FROM covid.state s
+INNER JOIN covid.covid_case_stats cs
+    ON s.state_id = cs.state_id
+GROUP BY s.name
+ORDER BY max_per_day_confirmed DESC;
+
+
+-- 4. Max Per Day Death Cases in States.
+
+SELECT
+    s.name AS state,
+    MAX(cs.new_deaths) AS max_per_day_deaths
+FROM covid.state s
+INNER JOIN covid.covid_case_stats cs
+    ON s.state_id = cs.state_id
+GROUP BY s.name
+ORDER BY max_per_day_deaths DESC;
+
+
+-- 5. State-wise Mortality Rate.
+
+SELECT
+    s.name AS state,
+    (
+        SUM(cs.deaths)::NUMERIC
+        / NULLIF(SUM(cs.confirmed), 0)
+    ) * 100 AS mortality_rate
+FROM covid.state s
+INNER JOIN covid.covid_case_stats cs
+    ON s.state_id = cs.state_id
+GROUP BY s.name
+ORDER BY mortality_rate DESC;
