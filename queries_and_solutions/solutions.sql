@@ -181,3 +181,49 @@ INNER JOIN covid.global_covid_stats g
     ON c.country_id = g.country_id
 WHERE g.report_date = '2021-09-30'
 ORDER BY g.new_confirmed DESC;
+
+-- =========================
+-- CTE (COMMON TABLE EXPRESSIONS)
+-- =========================
+
+-- 12. Create a CTE to calculate the percentage increase in confirmed cases for each country over the past week.
+
+WITH weekly_data AS (
+    SELECT 
+        c.name AS country,
+        MIN(g.confirmed) AS starting_cases,
+        MAX(g.confirmed) AS ending_cases
+    FROM covid.country c
+    JOIN covid.global_covid_stats g
+        ON c.country_id = g.country_id
+    WHERE g.report_date >= '2021-09-24'
+      AND g.report_date <= '2021-09-30'
+    GROUP BY c.name
+)
+SELECT 
+    country,
+    ((ending_cases - starting_cases) * 100.0 
+        / NULLIF(starting_cases, 0)) AS percentage_increase
+FROM weekly_data;
+
+
+-- 13. Use a CTE to find the country with the highest number of active cases at the moment.
+
+WITH current_cases AS (
+    SELECT 
+        c.name AS country,
+        g.active_cases
+    FROM covid.country c
+    INNER JOIN covid.global_covid_stats g
+        ON c.country_id = g.country_id
+    WHERE g.report_date = (
+        SELECT MAX(report_date)
+        FROM covid.global_covid_stats
+    )
+)
+SELECT 
+    country,
+    active_cases
+FROM current_cases
+ORDER BY active_cases DESC
+LIMIT 1;
