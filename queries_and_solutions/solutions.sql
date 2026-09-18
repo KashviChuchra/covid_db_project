@@ -533,3 +533,97 @@ WHERE g.report_date = (
 )
 GROUP BY c.continent
 ORDER BY total_deaths DESC;
+
+-- =========================================================
+-- QUERIES ON VACCINATION
+-- =========================================================
+
+-- 1. Total vaccinated with at least 1 dose over time
+-- (All countries).
+
+SELECT
+    v.date,
+    SUM(v.first_dose) AS total_vaccinated
+FROM covid.vaccination v
+GROUP BY v.date
+ORDER BY v.date;
+
+
+-- 2. Percentage of the population vaccinated with at least
+-- the first dose until 30/09/2021 (Top 3).
+
+SELECT
+    c.name AS country,
+    s.name AS state,
+    (
+        SUM(v.first_dose)::NUMERIC
+        / NULLIF(s.population, 0)
+    ) * 100 AS people_vaccinated
+FROM covid.vaccination v
+INNER JOIN covid.state s
+    ON v.state_id = s.state_id
+INNER JOIN covid.country c
+    ON s.country_id = c.country_id
+WHERE v.date = (
+    SELECT MAX(date)
+    FROM covid.vaccination
+    WHERE date <= '2021-09-30'
+)
+GROUP BY c.name, s.name, s.population
+ORDER BY people_vaccinated DESC
+LIMIT 3;
+
+
+-- 3. To find out the population vs the number of people vaccinated.
+
+SELECT
+    c.name AS country,
+    s.name AS state,
+    s.population,
+    v.first_dose,
+    v.second_dose
+FROM covid.state s
+INNER JOIN covid.country c
+    ON s.country_id = c.country_id
+INNER JOIN covid.vaccination v
+    ON v.state_id = s.state_id;
+
+
+-- 4. To find out the percentage of different vaccines
+-- taken by people in a country.
+
+SELECT
+    c.name,
+    s.name,
+    (
+        SUM(v.covaxin)::NUMERIC / NULLIF(SUM(v.total_doses), 0)
+    ) * 100 AS covaxin_percentage,
+
+    (
+        SUM(v.covishield)::NUMERIC
+        / NULLIF(SUM(v.total_doses), 0)
+    ) * 100 AS covishield_percentage,
+
+    (
+        SUM(v.sputnik_v)::NUMERIC
+        / NULLIF(SUM(v.total_doses), 0)
+    ) * 100 AS sputnik_v_percentage
+FROM covid.vaccination v
+INNER JOIN covid.state s
+    ON v.state_id = s.state_id
+INNER JOIN covid.country c
+    ON s.country_id = c.country_id
+GROUP BY c.name, s.name;
+
+
+-- 5. To find out the percentage of people
+-- who took both the doses.
+
+SELECT
+    s.name,
+    (SUM(v.second_dose)::NUMERIC / NULLIF(SUM(v.first_dose), 0) ) * 100 AS both_dose_percentage
+FROM covid.vaccination v
+INNER JOIN covid.state s
+    ON v.state_id = s.state_id
+GROUP BY s.name
+ORDER BY both_dose_percentage DESC;
