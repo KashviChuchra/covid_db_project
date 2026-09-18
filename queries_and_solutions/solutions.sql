@@ -120,3 +120,35 @@ END;
 $$;
 CALL update_deaths('india', '2021-09-30', 500);
 
+-- =========================
+-- VIEWS
+-- =========================
+
+-- 8. Create a view that displays the total number of cases (confirmed, deaths, and recovered) for each country on a specific date.
+
+CREATE OR REPLACE VIEW covid_cases_on_date AS
+SELECT 
+    c.name AS country,
+    g.report_date,
+    g.confirmed,
+    g.deaths,
+    g.recovered
+FROM covid.country c
+INNER JOIN covid.global_covid_stats g
+    ON c.country_id = g.country_id
+WHERE g.report_date = '2021-09-30';
+
+
+-- 9. Implement a view to show the latest data (confirmed, deaths, recovered) for each country.
+
+CREATE OR REPLACE VIEW latest_country_data AS
+SELECT DISTINCT ON (c.name)
+    c.name AS country,
+    g.report_date,
+    g.confirmed,
+    g.deaths,
+    g.recovered
+FROM covid.country c
+INNER JOIN covid.global_covid_stats g
+    ON c.country_id = g.country_id
+ORDER BY c.name, g.report_date DESC;
