@@ -292,3 +292,48 @@ $$;
 
 -- Execute the function
 SELECT recovery_rate('India', '2021-09-30');
+
+-- =========================================================
+-- GROUP BY
+-- =========================================================
+
+-- 18. Group the data by continent and calculate the total
+-- number of confirmed cases for each continent.
+
+SELECT
+    c.continent,
+    SUM(g.confirmed) AS total_confirmed
+FROM covid.country c
+INNER JOIN covid.global_covid_stats g
+    ON c.country_id = g.country_id
+WHERE g.report_date = (
+    SELECT MAX(report_date)
+    FROM covid.global_covid_stats
+)
+GROUP BY c.continent
+ORDER BY total_confirmed DESC;
+
+
+-- 19. Group the data by date and compute the total number
+-- of deaths and recoveries for each date.
+
+SELECT
+    report_date,
+    SUM(deaths) AS total_deaths,
+    SUM(recovered) AS total_recovered
+FROM covid.global_covid_stats
+GROUP BY report_date
+ORDER BY report_date;
+
+
+-- 20. Group the data by country and calculate the average
+-- number of new cases reported daily for each country.
+
+SELECT
+    c.name AS country,
+    AVG(g.new_confirmed) AS average_new_cases
+FROM covid.country c
+INNER JOIN covid.global_covid_stats g
+    ON c.country_id = g.country_id
+GROUP BY c.name
+ORDER BY average_new_cases DESC;
