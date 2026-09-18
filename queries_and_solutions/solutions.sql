@@ -68,3 +68,55 @@ WHERE g.report_date = '2021-09-30'
 ORDER BY g.active_cases DESC
 LIMIT 1;
 
+-- =========================
+-- STORED PROCEDURES
+-- =========================
+
+-- 6. Create a stored procedure that returns the total number of recovered cases for a given country and date.
+
+CREATE OR REPLACE PROCEDURE get_recovered_cases(
+    a_country VARCHAR,
+    a_date DATE
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    total_recovered BIGINT;
+BEGIN
+    SELECT 
+        g.recovered
+    INTO total_recovered
+    FROM covid.country c
+    INNER JOIN covid.global_covid_stats g
+        ON c.country_id = g.country_id
+    WHERE c.name = a_country
+      AND g.report_date = a_date;
+
+    RAISE NOTICE 'Total recovered cases: %', total_recovered;
+END;
+$$;
+
+-- Execute the procedure
+CALL get_recovered_cases('India', '2021-09-30');
+
+
+-- 7. Design a stored procedure to update the number of deaths for a specific country and date.
+
+CREATE OR REPLACE PROCEDURE update_deaths(
+    p_country VARCHAR,
+    p_date DATE,
+    p_deaths BIGINT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE covid.global_covid_stats g
+    SET deaths = p_deaths
+    FROM covid.country c
+    WHERE g.country_id = c.country_id
+      AND c.name = p_country
+      AND g.report_date = p_date;
+END;
+$$;
+CALL update_deaths('india', '2021-09-30', 500);
+
