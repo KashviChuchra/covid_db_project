@@ -241,3 +241,54 @@ LIMIT 1;
 -- to speed up search operations.
 
 CREATE INDEX idx_country_name ON covid.country(name);
+
+-- =========================================================
+-- USER-DEFINED FUNCTIONS (UDF)
+-- =========================================================
+
+-- 16. Develop a UDF to calculate the mortality rate(deaths / confirmed cases * 100) for a given country.
+
+CREATE OR REPLACE FUNCTION mortality_rate(p_country VARCHAR)
+RETURNS NUMERIC
+LANGUAGE SQL
+AS $$
+    SELECT
+        CASE
+            WHEN g.confirmed = 0 THEN 0
+            ELSE (g.deaths::NUMERIC / g.confirmed) * 100
+        END
+    FROM covid.global_covid_stats g
+    INNER JOIN covid.country c
+        ON g.country_id = c.country_id
+    WHERE c.name = p_country
+    ORDER BY g.report_date DESC
+    LIMIT 1;
+$$;
+
+-- Execute the function
+SELECT mortality_rate('India');
+
+
+-- 17. Create a UDF to determine the recovery rate(recovered / confirmed cases * 100) for a specific date.
+
+CREATE OR REPLACE FUNCTION recovery_rate(
+    p_country VARCHAR,
+    p_date DATE
+)
+RETURNS NUMERIC
+LANGUAGE SQL
+AS $$
+    SELECT
+        CASE
+            WHEN g.confirmed = 0 THEN 0
+            ELSE (g.recovered::NUMERIC / g.confirmed) * 100
+        END
+    FROM covid.global_covid_stats g
+    INNER JOIN covid.country c
+        ON g.country_id = c.country_id
+    WHERE c.name = p_country
+      AND g.report_date = p_date;
+$$;
+
+-- Execute the function
+SELECT recovery_rate('India', '2021-09-30');
