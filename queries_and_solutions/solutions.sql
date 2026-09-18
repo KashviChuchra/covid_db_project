@@ -227,3 +227,17 @@ SELECT
 FROM current_cases
 ORDER BY active_cases DESC
 LIMIT 1;
+
+-- =========================================================
+-- INDEXES
+-- =========================================================
+
+-- 14. Explain the importance of indexes in optimizing queries for this dataset.
+
+-- Indexes improve query performance by allowing the database to find rows faster instead of scanning the entire table. They are especially useful for columns frequently used in WHERE, JOIN, ORDER BY, and GROUP BY clauses.
+
+
+-- 15. Implement an index on the "Country/Region" column
+-- to speed up search operations.
+
+CREATE INDEX idx_country_name ON covid.country(name);
