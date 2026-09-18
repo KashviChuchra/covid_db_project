@@ -152,3 +152,32 @@ FROM covid.country c
 INNER JOIN covid.global_covid_stats g
     ON c.country_id = g.country_id
 ORDER BY c.name, g.report_date DESC;
+
+-- =========================
+-- T-SQL
+-- =========================
+
+-- 10. Write a T-SQL query to calculate the total number of cases (confirmed + deaths + recovered) for each country.
+
+SELECT 
+    c.name AS country,
+    g.confirmed + g.deaths + g.recovered AS total_cases
+FROM covid.country c
+INNER JOIN covid.global_covid_stats g
+    ON c.country_id = g.country_id
+WHERE g.report_date = (
+    SELECT MAX(report_date)
+    FROM covid.global_covid_stats
+);
+
+
+-- 11. Use T-SQL to identify the country with the highest number of new cases reported on a specific date.
+
+SELECT TOP 1
+    c.name AS country,
+    g.new_confirmed
+FROM covid.country c
+INNER JOIN covid.global_covid_stats g
+    ON c.country_id = g.country_id
+WHERE g.report_date = '2021-09-30'
+ORDER BY g.new_confirmed DESC;
