@@ -45,3 +45,26 @@ WHERE g.report_date = (
 
 GROUP BY c.continent
 ORDER BY c.continent
+
+-- =========================
+-- AGGREGATE FUNCTIONS
+-- =========================
+
+-- 4. Calculate the average number of new deaths per day across all countries.
+
+SELECT 
+    AVG(g.new_deaths) AS average_new_deaths_per_day
+FROM covid.global_covid_stats g;
+
+-- 5. Find the maximum number of active cases recorded in any country on a specific date.
+
+SELECT 
+    c.name,
+    g.active_cases
+FROM covid.country c
+INNER JOIN covid.global_covid_stats g 
+    ON c.country_id = g.country_id
+WHERE g.report_date = '2021-09-30'
+ORDER BY g.active_cases DESC
+LIMIT 1;
+
